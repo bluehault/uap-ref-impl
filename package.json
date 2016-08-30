@@ -1,7 +1,7 @@
 {
   "name": "uap-ref-impl",
   "description": "Reference implementation of ua-parser.",
-  "main": "./lib/parser",
+  "main": "./dist/parser",
   "version": "0.2.0",
   "maintainers": [
     {
@@ -15,18 +15,24 @@
     "url": "http://github.com/ua-parser/uap-ref-impl.git"
   },
   "licenses": [
-	{
+    {
       "type": "Apache-2.0",
       "url": "https://raw.github.com/ua-parser/uap-ref-impl/master/LICENSE"
     }
   ],
   "dependencies": {
+    "uap-core": "https://github.com/tobie/ua-parser.git",
     "yamlparser": ">=0.0.2"
   },
   "devDependencies": {
-    "mocha": "*"
+    "mocha": "*",
+    "rollup": "^0.34.10",
+    "uglify-js": "^2.7.3"
   },
   "scripts": {
-    "test": "mocha -u tdd ./test/*.js"
+    "build": "node json.js && npm run rollup && rm regexes.js && npm run uglify",
+    "rollup": "rollup -m -o dist/parser.js lib/parser.js",
+    "test": "mocha -u tdd ./test/*.js",
+    "uglify": "uglifyjs -c -m --in-source-map=dist/parser.js.map --source-map=dist/parser.min.js.map -o dist/parser.min.js dist/parser.js"
   }
 }

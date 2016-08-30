@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>parser</title>
+	<style type="text/css">
+		html {
+			box-sizing: border-box;
+		}
+
+		*, *:before, *:after {
+			box-sizing: inherit;
+		}
+
+		body {
+			background-color: #e1e7d3;
+			color: #4f3717;
+			font-family: sans-serif;
+			margin: 0;
+		}
+
+		div {
+			margin: 0;
+		}
+
+		h1 {
+			background-color: #e1e7d3;
+			color: #4f3717;
+			margin: 0;
+			padding: 1em;
+			text-align: center;
+		}
+
+		h1,
+		h2,
+		h3 {
+			text-transform: uppercase;
+		}
+
+		ul {
+			padding-left: 1em;
+		}
+
+		input {
+			padding: .5em;
+			width: 100%;
+		}
+
+		a {
+			color: #39675a;
+			text-decoration: none;
+		}
+
+		a:visited {
+			color: #84a580;
+		}
+
+		a:hover {
+			text-decoration: underline;
+		}
+
+		.columns {
+			display: flex;
+			overflow: hidden;
+		}
+
+		.col {
+			flex: 1;
+			padding: 1em;
+		}
+
+		#detect {
+			background-color: #b4c3a8;
+			color: #39675a;
+		}
+
+		#examples {
+			background-color: #39675a;
+			color: #b4c3a8;
+		}
+
+		#footer {
+			background-color: #e1e7d3;
+			color: #4f3717;
+			margin: 0;
+			padding: 1em;
+			text-align: center;
+		}
+
+		@media screen and (max-width: 800px) {
+			.columns {
+				flex-direction: column;
+			}
+		}
+	</style>
+</head>
+<body>
+	<h1>user agent parser</h1>
+	<div class="columns">
+		<div id="detect" class="col">
+			<h2>Your user agent string</h2>
+			<p id="detect-ua"></p>
+			<ul id="detect-result"></ul>
+		</div>
+		<div id="examples" class="col">
+			<h2>Examples</h2>
+			<p>Paste a user agent string below or click "Get random" to test the detection.</p>
+			<input type="text" id="example-ua" />
+			<ul id="example-result"></ul>
+		</div>
+	</div>
+	<p id="footer">JavaScript <a href="https://github.com/ua-parser/uap-ref-impl">uap-ref-impl</a>. <br> Regex from <a href="https://github.com/ua-parser/uap-core">uap-core</a>. <br> Demo by <a href="https://github.com/deificx">deificx</a></p>
+	<script src="dist/parser.min.js"></script>
+	<script type="text/javascript">
+
+		var det_ua_dom = document.getElementById('detect-ua');
+		var det_result_dom = document.getElementById('detect-result');
+		var exa_ua_dom = document.getElementById('example-ua');
+		var exa_result_dom = document.getElementById('example-result');
+
+		var strings = [
+			// desktop
+			'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/601.7.7 (KHTML, like Gecko) Version/9.1.2 Safari/601.7.7',
+			'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:47.0) Gecko/20100101 Firefox/47.0',
+			'Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:47.0) Gecko/20100101 Firefox/47.0',
+			'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:48.0) Gecko/20100101 Firefox/48.0',
+			'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:48.0) Gecko/20100101 Firefox/48.0',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/601.6.17 (KHTML, like Gecko) Version/9.1.1 Safari/601.6.17',
+			'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586',
+			'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:48.0) Gecko/20100101 Firefox/48.0',
+			'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:47.0) Gecko/20100101 Firefox/47.0',
+			'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.11; rv:48.0) Gecko/20100101 Firefox/48.0',
+			'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.82 Safari/537.36',
+			'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/51.0.2704.79 Chrome/51.0.2704.79 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko',
+			// mobile
+			'Mozilla/5.0 (Linux; Android 5.1.1; SM-G928X Build/LMY47X) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36',
+			'Mozilla/5.0 (Windows Phone 10.0; Android 4.2.1; Microsoft; Lumia 950) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Mobile Safari/537.36 Edge/13.10586',
+			'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 6P Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36',
+		];
+
+		function print(result, detect) {
+			var res = '';
+			for (var group in result) {
+				if (group !== 'userAgent') {
+					res += '<ul><li>' + group + '</li><ul>';
+					for (var key in result[group]) {
+						res += '<li><b>' + key + ': </b>' + result[group][key] + '</li>';
+					}
+					res += '</ul></ul>';
+				}
+			}
+
+			if (detect) {
+				det_ua_dom.innerHTML = result.userAgent;
+				det_result_dom.innerHTML = res;
+			} else {
+				exa_ua_dom.value = result.userAgent;
+				exa_result_dom.innerHTML = res;	
+			}
+		}
+
+		print(uaParser.parse(strings[Math.floor(Math.random() * strings.length)]));
+		print(uaParser.parse(navigator.userAgent), true);
+
+		exa_ua_dom.onblur = function() {
+			print(uaParser.parse(exa_ua_dom.value));
+		};
+
+		var randomButton = document.createElement('button');
+		randomButton.innerHTML = 'Get random';
+		randomButton.onclick = function() {
+			print(uaParser.parse(strings[Math.floor(Math.random() * strings.length)]));
+		};
+		document.getElementById('examples').appendChild(randomButton);
+	</script>
+</body>
+</html>
